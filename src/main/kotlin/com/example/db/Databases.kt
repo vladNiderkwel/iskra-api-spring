@@ -1,12 +1,13 @@
 package com.example.db
 
-import com.example.db.models.UserService
+import com.example.DB_NAME
+import com.example.db.models.*
+import com.example.db.routing.postRouting
 import com.example.db.routing.userRouting
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.*
-
-const val DB_NAME = "iskra_db"
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Application.configureDatabases() {
 
@@ -17,9 +18,17 @@ fun Application.configureDatabases() {
         password = "WaterBridge159",
     )
 
-    val userService = UserService(database)
+    createTables(database)
 
     routing {
-        userRouting(userService)
+        userRouting()
+        postRouting()
+    }
+}
+
+fun createTables(db: Database) {
+    transaction(db) {
+        SchemaUtils.create(UserTable)
+        SchemaUtils.create(PostTable)
     }
 }

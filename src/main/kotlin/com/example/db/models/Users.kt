@@ -1,23 +1,40 @@
 package com.example.db.models
 
-import kotlinx.coroutines.Dispatchers
+import com.example.USER_TABLE
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.dao.IntEntity
+import org.jetbrains.exposed.dao.IntEntityClass
+import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
 data class User(
+    val id: Int = -1,
     val name: String,
     val email: String,
     val password: String,
-    val photoUrl: String,
-    val role: String
+    val photoUrl: String
 )
 
-object UserTable : IntIdTable("users") {
+class UserEntity(id: EntityID<Int>) : IntEntity(id) {
+    companion object : IntEntityClass<UserEntity>(UserTable)
+
+    var name by UserTable.name
+    var email by UserTable.email
+    var password by UserTable.password
+    var photoUrl by UserTable.photoUrl
+
+    fun model(): User =
+        User(
+            id = id.value,
+            name = name,
+            email = email,
+            password = password,
+            photoUrl = photoUrl,
+        )
+}
+
+object UserTable : IntIdTable(USER_TABLE) {
     val name = varchar(
         name = "name",
         length = 64,
@@ -25,7 +42,7 @@ object UserTable : IntIdTable("users") {
     val email = varchar(
         name = "email",
         length = 64,
-    )
+    ).uniqueIndex()
     val password = varchar(
         name = "password",
         length = 32
@@ -34,12 +51,9 @@ object UserTable : IntIdTable("users") {
         name = "photo_url",
         length = 128
     )
-    val role = varchar(
-        name = "role",
-        length = 8
-    )
 }
 
+/*
 class UserService(db: Database) {
     init {
         transaction(db) {
@@ -48,11 +62,11 @@ class UserService(db: Database) {
     }
 
     private fun toUser(row: ResultRow): User = User(
+        id = row[UserTable.id].value,
         name = row[UserTable.name],
         email = row[UserTable.email],
         password = row[UserTable.password],
         photoUrl = row[UserTable.photoUrl],
-        role = row[UserTable.role],
     )
 
     private suspend fun <T> query(block: suspend () -> T): T =
@@ -64,7 +78,6 @@ class UserService(db: Database) {
             it[email] = user.email
             it[password] = user.password
             it[photoUrl] = user.photoUrl
-            it[role] = user.role
         }[UserTable.id].value
     }
 
@@ -91,7 +104,7 @@ class UserService(db: Database) {
             it[email] = user.email
             it[password] = user.password
             it[photoUrl] = user.photoUrl
-            it[role] = user.role
         } > 0
     }
 }
+*/

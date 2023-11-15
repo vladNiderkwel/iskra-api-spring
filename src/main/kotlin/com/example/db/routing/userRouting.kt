@@ -1,14 +1,15 @@
 package com.example.db.routing
 
 import com.example.db.models.User
-import com.example.db.models.UserService
+import com.example.db.models.UserEntity
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.transactions.transaction
 
-fun Routing.userRouting(userService: UserService) {
+fun Routing.userRouting() {
     route("/user") {
 
         get {
@@ -16,37 +17,71 @@ fun Routing.userRouting(userService: UserService) {
         }
 
         get("/") {
-            val allUser = userService.all()
-            call.respond(HttpStatusCode.OK, allUser)
+            call.respond(
+                status = HttpStatusCode.OK,
+                message = transaction {
+                    UserEntity.all().map { it.model() }
+                }
+            )
         }
 
         get("/{id}") {
             val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Неверный ID")
-            val user = userService.find(id)
-            user?.let {
-                call.respond(HttpStatusCode.OK, it)
-            } ?: call.respond(HttpStatusCode.NotFound)
+            val user = transaction {
+                UserEntity.findById(id)
+            }
+
+            if (user == null) call.respond(HttpStatusCode.NotFound)
+            else call.respond(HttpStatusCode.OK, it)
         }
 
         delete("/{id}") {
             val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Неверный ID")
-
-            val isDeleted = userService.delete(id)
-            call.respond(HttpStatusCode.OK, isDeleted)
+            transaction {
+                UserEntity.findById(id)?.delete()
+            }
+            call.respond(HttpStatusCode.OK)
         }
 
         put("/{id}") {
             val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Неверный ID")
-            val user = call.receive<User>()
+            val newData = call.receive<User>()
 
-            val isUpdated = userService.update(id, user)
+            val user = transaction {
+                UserEntity.findById(id)
+            }
+
+            var isUpdated = false
+
+            transaction {
+                user?.let {
+                    it.name = newData.name
+                    it.email = newData.email
+                    it.password = newData.password
+                    it.photoUrl = newData.photoUrl
+                    isUpdated = it.flush()
+                }
+            }
+
             call.respond(HttpStatusCode.OK, isUpdated)
         }
 
         post("/") {
             val user = call.receive<User>()
-            val id = userService.create(user)
-            call.respond(HttpStatusCode.Created, id)
+
+            val created = transaction {
+                UserEntity.new {
+                    name = user.name
+                    email = user.email
+                    password = user.password
+                    photoUrl = user.photoUrl
+                }
+            }
+
+            call.respond(
+                status = HttpStatusCode.Created,
+                message = created.id.value
+            )
         }
     }
 }
