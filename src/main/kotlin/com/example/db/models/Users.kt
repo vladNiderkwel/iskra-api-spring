@@ -1,16 +1,12 @@
 package com.example.db.models
 
-import com.example.USER_TABLE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
-import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
 data class User(
@@ -56,17 +52,11 @@ object UserTable : IntIdTable("USERS") {
     )
 }
 
-class UserController(db: Database) {
-    init {
-        transaction(db) {
-            SchemaUtils.create(UserTable)
-        }
-    }
-
+class UserController {
     private suspend fun <T> query(block: suspend () -> T): T =
         newSuspendedTransaction(Dispatchers.IO) { block() }
 
-    suspend fun create(user: User) : Int = query {
+    suspend fun create(user: User): Int = query {
         UserEntity.new {
             name = user.name
             email = user.email
@@ -78,14 +68,7 @@ class UserController(db: Database) {
     suspend fun all(): List<User> = query {
         UserEntity
             .all()
-            .map { entity ->
-                User(
-                    name = entity.name,
-                    email = entity.email,
-                    password = entity.password,
-                    photoUrl = entity.photoUrl
-                )
-            }
+            .map { it.toUser() }
     }
 
     suspend fun find(id: Int): User? = query {

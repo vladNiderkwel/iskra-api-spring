@@ -2,7 +2,6 @@ package com.example.db
 
 import com.example.db.models.*
 import com.example.db.routing.userRouting
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.Database
@@ -22,7 +21,7 @@ fun Application.configureDatabases() {
 
     createTables(database)
 
-    val userController = UserController(database)
+    val userController = UserController()
 
     routing {
         userRouting(userController)
@@ -32,10 +31,20 @@ fun Application.configureDatabases() {
 fun createTables(db: Database) {
     transaction(db) {
         SchemaUtils.create(UserTable)
+
         SchemaUtils.create(StaffTable)
         SchemaUtils.create(PostTable)
+
         SchemaUtils.create(TaskTable)
         SchemaUtils.create(QuestionTaskTable)
         SchemaUtils.create(CompoundTaskTable)
+        SchemaUtils.create(UserTaskTable)
+
+        SchemaUtils.create(AchievementTable)
+        SchemaUtils.create(UserAchievementTable)
+
+        SchemaUtils.create(QuestionTable)
+
+        SchemaUtils.create(MapMarkTable)
     }
 }
