@@ -1,20 +1,21 @@
 package com.example.db.routing
 
 import com.example.db.INVALID_ID
-import com.example.db.models.*
+import com.example.db.models.MapMark
+import com.example.db.models.MapMarksController
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Routing.postRouting(postController: PostController) {
+fun Routing.mapMarkRouting(mapMarksController: MapMarksController) {
     route("/post") {
 
         get("/") {
             call.respond(
                 status = HttpStatusCode.OK,
-                message = postController.all()
+                message = mapMarksController.all()
             )
         }
 
@@ -22,20 +23,20 @@ fun Routing.postRouting(postController: PostController) {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                val post = postController.find(id)
+                val mark = mapMarksController.find(it)
 
-                if (post == null) call.respond(HttpStatusCode.NotFound)
-                else call.respond(HttpStatusCode.Found, post)
+                if (mark == null) call.respond(HttpStatusCode.NotFound)
+                else call.respond(HttpStatusCode.Found, mark)
 
             } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
         }
 
         post("/") {
-            val post = call.receive<Post>()
+            val mark = call.receive<MapMark>()
 
             call.respond(
                 status = HttpStatusCode.Created,
-                message = postController.create(post)
+                message = mapMarksController.create(mark)
             )
         }
 
@@ -43,7 +44,7 @@ fun Routing.postRouting(postController: PostController) {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                postController.delete(id)
+                mapMarksController.delete(id)
                 call.respond(HttpStatusCode.OK)
 
             } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
@@ -53,9 +54,9 @@ fun Routing.postRouting(postController: PostController) {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                val newData = call.receive<Post>()
+                val newData = call.receive<MapMark>()
 
-                postController.update(id, newData)
+                mapMarksController.update(id, newData)
                 call.respond(HttpStatusCode.OK)
 
             } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)

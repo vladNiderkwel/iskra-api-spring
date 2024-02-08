@@ -1,6 +1,9 @@
 package com.example.db
 
 import com.example.db.models.*
+import com.example.db.routing.mapMarkRouting
+import com.example.db.routing.postRouting
+import com.example.db.routing.staffRouting
 import com.example.db.routing.userRouting
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
@@ -22,9 +25,15 @@ fun Application.configureDatabases() {
     createTables(database)
 
     val userController = UserController()
+    val staffController = StaffController()
+    val postController = PostController()
+    val mapMarkController = MapMarksController()
 
     routing {
         userRouting(userController)
+        staffRouting(staffController)
+        postRouting(postController)
+        mapMarkRouting(mapMarkController)
     }
 }
 

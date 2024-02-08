@@ -1,5 +1,6 @@
 package com.example.db.routing
 
+import com.example.db.INVALID_ID
 import com.example.db.models.User
 import com.example.db.models.UserController
 import com.example.db.models.UserEntity
@@ -14,10 +15,6 @@ fun Routing.userRouting(userController: UserController) {
 
     route("/user") {
 
-        get {
-            call.respondRedirect("/user/")
-        }
-
         get("/") {
             call.respond(
                 status = HttpStatusCode.OK,
@@ -30,35 +27,41 @@ fun Routing.userRouting(userController: UserController) {
         }
 
         get("/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Неверный ID")
+            val id = call.parameters["id"]?.toInt()
 
-            val user = userController.find(id)
-            user?.let {
-                call.respond(HttpStatusCode.OK, it)
-            } ?: call.respond(HttpStatusCode.NotFound)
+            id?.let {
+                val user = userController.find(id)
+                user?.let {
+                    call.respond(HttpStatusCode.OK, it)
+                } ?: call.respond(HttpStatusCode.NotFound)
+
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
         }
 
         delete("/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Неверный ID")
+            val id = call.parameters["id"]?.toInt()
 
-            userController.delete(id)
-            //call.respond(HttpStatusCode.OK, isDeleted)
+            id?.let {
+                userController.delete(id)
+
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
         }
 
         put("/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Неверный ID")
-            val user = call.receive<User>()
+            val id = call.parameters["id"]?.toInt()
 
-            userController.update(id, user)
-            //call.respond(HttpStatusCode.OK, isUpdated)
+            id?.let {
+                val user = call.receive<User>()
+
+                userController.update(id, user)
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
         }
 
         post("/") {
             val user = call.receive<User>()
-
             val id = userController.create(user)
-            call.respond(HttpStatusCode.Created, id)
 
+            call.respond(HttpStatusCode.Created, id)
         }
     }
 }
