@@ -1,5 +1,6 @@
 package com.example.db.models
 
+import com.example.db.query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
@@ -10,6 +11,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 @Serializable
 data class Staff(
+    val id: Int = -1,
     val name: String,
     val email: String,
     val password: String,
@@ -25,6 +27,7 @@ class StaffEntity(id: EntityID<Int>) : IntEntity(id) {
     var role by StaffTable.role
 
     fun toStaff(): Staff = Staff(
+        id = id.value,
         name = name,
         email = email,
         password = password,
@@ -51,10 +54,7 @@ object StaffTable : IntIdTable("STAFF") {
 }
 
 class StaffController {
-    private suspend fun <T> query(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
-
-    suspend fun create(staff: Staff): Int = query {
+   suspend fun create(staff: Staff): Int = query {
         StaffEntity.new {
             name = staff.name
             email = staff.email

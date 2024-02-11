@@ -1,15 +1,16 @@
 package com.example.db.routing
 
 import com.example.db.INVALID_ID_FORMAT
-import com.example.db.models.*
+import com.example.db.models.Question
+import com.example.db.models.QuestionController
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Routing.postRouting(controller: PostController) {
-    route("/post") {
+fun Routing.questionRouting(controller: QuestionController) {
+    route("/question") {
 
         get("/") {
             call.respond(
@@ -22,16 +23,16 @@ fun Routing.postRouting(controller: PostController) {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                val post = controller.find(id)
+                val question = controller.find(id)
 
-                if (post == null) call.respond(HttpStatusCode.NotFound)
-                else call.respond(HttpStatusCode.Found, post)
+                if (question == null) call.respond(HttpStatusCode.NotFound)
+                else call.respond(HttpStatusCode.Found, question)
 
             } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
         }
 
         post("/") {
-            val post = call.receive<Post>()
+            val post = call.receive<Question>()
 
             call.respond(
                 status = HttpStatusCode.Created,
@@ -53,7 +54,7 @@ fun Routing.postRouting(controller: PostController) {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                val newData = call.receive<Post>()
+                val newData = call.receive<Question>()
 
                 controller.update(id, newData)
                 call.respond(HttpStatusCode.OK)

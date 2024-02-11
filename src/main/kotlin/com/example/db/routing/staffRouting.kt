@@ -1,6 +1,6 @@
 package com.example.db.routing
 
-import com.example.db.INVALID_ID
+import com.example.db.INVALID_ID_FORMAT
 import com.example.db.models.Staff
 import com.example.db.models.StaffController
 import io.ktor.http.*
@@ -9,13 +9,13 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Routing.staffRouting(staffController: StaffController) {
+fun Routing.staffRouting(controller: StaffController) {
     route("/staff") {
 
         get("/all") {
             call.respond(
                 status = HttpStatusCode.OK,
-                message = staffController.all()
+                message = controller.all()
             )
         }
 
@@ -24,28 +24,31 @@ fun Routing.staffRouting(staffController: StaffController) {
 
             if (!call.request.queryParameters["id"].isNullOrEmpty()) {
 
-                val id = call.request.queryParameters["id"]?.toInt() ?: throw IllegalArgumentException("Неверный ID")
-                staff = staffController.find(id)
+                val id = call.request.queryParameters["id"]?.toInt()
+                id?.let {
+                    staff = controller.find(id)
+                } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
+
             } else if (!call.request.queryParameters["email"].isNullOrEmpty()) {
 
-                val email = call.request.queryParameters["email"] ?: throw IllegalArgumentException("Неверный ID")
-                staff = staffController.find(email)
+                val email = call.request.queryParameters["email"]
+                staff = controller.find(email!!)
             }
 
             if (staff == null) call.respond(HttpStatusCode.NotFound)
-            else call.respond(HttpStatusCode.Found, staff)
+            else call.respond(HttpStatusCode.Found, staff!!)
         }
 
-        get("/{id}/") {
+        get("/{id}") {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                val staff = staffController.find(id)
+                val staff = controller.find(id)
 
                 if (staff == null) call.respond(HttpStatusCode.NotFound)
                 else call.respond(HttpStatusCode.Found, staff)
 
-            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
         }
 
         post("/") {
@@ -53,18 +56,18 @@ fun Routing.staffRouting(staffController: StaffController) {
 
             call.respond(
                 status = HttpStatusCode.Created,
-                message = staffController.create(staff)
+                message = controller.create(staff)
             )
         }
 
-        delete("/{id}/") {
+        delete("/{id}") {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                staffController.delete(id)
+                controller.delete(id)
                 call.respond(HttpStatusCode.OK)
 
-            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
         }
 
         put("/{id}") {
@@ -73,10 +76,10 @@ fun Routing.staffRouting(staffController: StaffController) {
             id?.let {
                 val newData = call.receive<Staff>()
 
-                staffController.update(id, newData)
+                controller.update(id, newData)
                 call.respond(HttpStatusCode.OK)
 
-            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
         }
     }
 }

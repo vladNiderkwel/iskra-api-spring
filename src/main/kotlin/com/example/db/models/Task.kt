@@ -1,5 +1,6 @@
 package com.example.db.models
 
+import com.example.db.query
 import com.example.plugins.LocalDateSerializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
@@ -13,6 +14,7 @@ import java.time.LocalDateTime
 
 @Serializable
 data class Task(
+    val id: Int = -1,
     val name: String,
     val type: Byte,
     @Serializable(with = LocalDateSerializer::class)
@@ -30,6 +32,7 @@ class TaskEntity(id: EntityID<Int>) : IntEntity(id) {
     var endDate by TaskTable.endDate
 
     fun toTask(): Task = Task(
+        id = id.value,
         name = name,
         type = type,
         startDate = startDate,
@@ -54,9 +57,6 @@ object TaskTable : IntIdTable("TASKS") {
 }
 
 class TaskController {
-    private suspend fun <T> query(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
-
     suspend fun create(task: Task): Int = query {
         TaskEntity.new {
             name = task.name

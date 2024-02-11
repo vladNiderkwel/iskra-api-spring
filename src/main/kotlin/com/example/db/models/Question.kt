@@ -1,5 +1,6 @@
 package com.example.db.models
 
+import com.example.db.query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
@@ -10,6 +11,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 @Serializable
 data class Question(
+    val id: Int = -1,
     val author: User,
     val question: String,
     val answer: String = "",
@@ -25,6 +27,7 @@ class QuestionEntity(id: EntityID<Int>) : IntEntity(id) {
     var phase by QuestionTable.phase
 
     fun toQuestion(): Question = Question(
+        id = id.value,
         author = author.toUser(),
         question = question,
         answer = answer,
@@ -40,9 +43,6 @@ object QuestionTable : IntIdTable("QUESTIONS") {
 }
 
 class QuestionController {
-    private suspend fun <T> query(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
-
     suspend fun create(q: Question): Int = query {
         QuestionEntity.new {
             author = UserEntity.findById(q.author.id)!!

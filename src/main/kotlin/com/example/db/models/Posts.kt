@@ -1,5 +1,6 @@
 package com.example.db.models
 
+import com.example.db.query
 import com.example.plugins.LocalDateSerializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
@@ -14,6 +15,7 @@ import java.time.LocalDateTime
 
 @Serializable
 data class Post(
+    val id: Int = -1,
     val title: String,
     val body: String,
     val photoUrl: String,
@@ -30,6 +32,7 @@ class PostEntity(id: EntityID<Int>) : IntEntity(id) {
     var publicationDate by PostTable.publicationDate
 
     fun toPost(): Post = Post(
+        id = id.value,
         title = title,
         body = body,
         photoUrl = photoUrl,
@@ -51,9 +54,6 @@ object PostTable : IntIdTable("POSTS") {
 }
 
 class PostController {
-    private suspend fun <T> query(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
-
     suspend fun create(post: Post): Int = query {
         PostEntity.new {
             title = post.title

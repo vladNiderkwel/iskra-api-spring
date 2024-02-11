@@ -1,10 +1,7 @@
 package com.example.db
 
 import com.example.db.models.*
-import com.example.db.routing.mapMarkRouting
-import com.example.db.routing.postRouting
-import com.example.db.routing.staffRouting
-import com.example.db.routing.userRouting
+import com.example.db.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.Database
@@ -28,12 +25,16 @@ fun Application.configureDatabases() {
     val staffController = StaffController()
     val postController = PostController()
     val mapMarkController = MapMarksController()
+    val questionController = QuestionController()
+    val achievementController = AchievementController()
 
     routing {
         userRouting(userController)
         staffRouting(staffController)
         postRouting(postController)
         mapMarkRouting(mapMarkController)
+        questionRouting(questionController)
+        achievementRouting(achievementController)
     }
 }
 
@@ -55,5 +56,7 @@ fun createTables(db: Database) {
         SchemaUtils.create(QuestionTable)
 
         SchemaUtils.create(MapMarkTable)
+
+        SchemaUtils.create(EventTable)
     }
 }

@@ -1,12 +1,11 @@
 package com.example.db.models
 
-import kotlinx.coroutines.Dispatchers
+import com.example.db.query
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 @Serializable
 data class User(
@@ -26,6 +25,7 @@ class UserEntity(id: EntityID<Int>) : IntEntity(id) {
     var photoUrl by UserTable.photoUrl
 
     fun toUser(): User = User(
+        id = id.value,
         name = name,
         email = email,
         password = password,
@@ -53,9 +53,6 @@ object UserTable : IntIdTable("USERS") {
 }
 
 class UserController {
-    private suspend fun <T> query(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
-
     suspend fun create(user: User): Int = query {
         UserEntity.new {
             name = user.name

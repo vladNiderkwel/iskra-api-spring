@@ -1,15 +1,17 @@
 package com.example.db.routing
 
 import com.example.db.INVALID_ID_FORMAT
-import com.example.db.models.*
+import com.example.db.models.CompoundTask
+import com.example.db.models.QuestionTaskController
+import com.example.db.models.Task
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Routing.postRouting(controller: PostController) {
-    route("/post") {
+fun Routing.questionTaskRouting(controller: QuestionTaskController) {
+    route("/compound-task") {
 
         get("/") {
             call.respond(
@@ -18,24 +20,12 @@ fun Routing.postRouting(controller: PostController) {
             )
         }
 
-        get("/{id}") {
-            val id = call.parameters["id"]?.toInt()
-
-            id?.let {
-                val post = controller.find(id)
-
-                if (post == null) call.respond(HttpStatusCode.NotFound)
-                else call.respond(HttpStatusCode.Found, post)
-
-            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
-        }
-
         post("/") {
-            val post = call.receive<Post>()
+            val task = call.receive<Task>()
 
             call.respond(
                 status = HttpStatusCode.Created,
-                message = controller.create(post)
+                message = controller.create(task)
             )
         }
 
@@ -53,7 +43,7 @@ fun Routing.postRouting(controller: PostController) {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                val newData = call.receive<Post>()
+                val newData = call.receive<CompoundTask>()
 
                 controller.update(id, newData)
                 call.respond(HttpStatusCode.OK)

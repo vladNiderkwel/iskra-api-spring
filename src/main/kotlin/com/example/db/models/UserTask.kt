@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 
 data class UserTask(
+    val id: Int = -1,
     val user: User,
     val tasks: List<Task>
 )
@@ -17,6 +18,7 @@ class UserTaskEntity(id: EntityID<Int>) : IntEntity(id) {
     var tasks by TaskEntity via TaskTable
 
     fun toUserTask(): UserTask = UserTask(
+        id = id.value,
         user = user.toUser(),
         tasks = tasks.map { it.toTask() }
     )

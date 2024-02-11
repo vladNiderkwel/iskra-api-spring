@@ -1,6 +1,6 @@
 package com.example.db.routing
 
-import com.example.db.INVALID_ID
+import com.example.db.INVALID_ID_FORMAT
 import com.example.db.models.MapMark
 import com.example.db.models.MapMarksController
 import io.ktor.http.*
@@ -9,13 +9,13 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Routing.mapMarkRouting(mapMarksController: MapMarksController) {
-    route("/post") {
+fun Routing.mapMarkRouting(controller: MapMarksController) {
+    route("/marks") {
 
         get("/") {
             call.respond(
                 status = HttpStatusCode.OK,
-                message = mapMarksController.all()
+                message = controller.all()
             )
         }
 
@@ -23,12 +23,12 @@ fun Routing.mapMarkRouting(mapMarksController: MapMarksController) {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                val mark = mapMarksController.find(it)
+                val mark = controller.find(it)
 
                 if (mark == null) call.respond(HttpStatusCode.NotFound)
                 else call.respond(HttpStatusCode.Found, mark)
 
-            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
         }
 
         post("/") {
@@ -36,7 +36,7 @@ fun Routing.mapMarkRouting(mapMarksController: MapMarksController) {
 
             call.respond(
                 status = HttpStatusCode.Created,
-                message = mapMarksController.create(mark)
+                message = controller.create(mark)
             )
         }
 
@@ -44,10 +44,10 @@ fun Routing.mapMarkRouting(mapMarksController: MapMarksController) {
             val id = call.parameters["id"]?.toInt()
 
             id?.let {
-                mapMarksController.delete(id)
+                controller.delete(id)
                 call.respond(HttpStatusCode.OK)
 
-            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
         }
 
         put("/{id}") {
@@ -56,10 +56,10 @@ fun Routing.mapMarkRouting(mapMarksController: MapMarksController) {
             id?.let {
                 val newData = call.receive<MapMark>()
 
-                mapMarksController.update(id, newData)
+                controller.update(id, newData)
                 call.respond(HttpStatusCode.OK)
 
-            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID)
+            } ?: call.respond(HttpStatusCode.BadRequest, INVALID_ID_FORMAT)
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.db.models
 
+import com.example.db.query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.dao.IntEntity
@@ -10,6 +11,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 
 @Serializable
 data class MapMark(
+    val id: Int = -1,
     val name: String,
     val type: Byte,
     val lat: Float,
@@ -25,6 +27,7 @@ class MapMarkEntity(id: EntityID<Int>) : IntEntity(id) {
     var lon by MapMarkTable.lon
 
     fun toMapMark(): MapMark = MapMark(
+        id = id.value,
         name = name,
         type = type,
         lat = lat,
@@ -43,9 +46,6 @@ object MapMarkTable : IntIdTable("MAP_MARKS") {
 }
 
 class MapMarksController {
-    private suspend fun <T> query(block: suspend () -> T): T =
-        newSuspendedTransaction(Dispatchers.IO) { block() }
-
     suspend fun create(mark: MapMark): Int = query {
         MapMarkEntity.new {
             name = mark.name
