@@ -1,1 +1,1 @@
-rootProject.name = "com.example.iskra-api"
+rootProject.name = "iskra-api-spring"
